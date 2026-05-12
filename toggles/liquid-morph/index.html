@@ -18,9 +18,13 @@
       --track-w: 140px;
       --track-h: 64px;
       --thumb-d: 52px;
+      --droplet-d: 24px;
       --pad: 6px;
       --travel: calc(var(--track-w) - var(--thumb-d) - var(--pad) * 2);
+
       --t-bg: 500ms;
+      --t-morph: 700ms;
+      --ease-morph: cubic-bezier(0.65, 0, 0.35, 1);
     }
 
     *, *::before, *::after {
@@ -70,7 +74,15 @@
       outline: none;
     }
 
-    /* thumb */
+    /* capa que aplica el filtro goo solo a thumb + gota */
+    .goo-layer {
+      position: absolute;
+      inset: 0;
+      filter: url(#goo);
+      pointer-events: none;
+    }
+
+    /* thumb principal */
     .thumb {
       position: absolute;
       top: var(--pad);
@@ -79,27 +91,116 @@
       height: var(--thumb-d);
       border-radius: 50%;
       background: radial-gradient(circle at 35% 30%, #ffffff, #e8e8f0);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       transform: translateX(0);
-      transition: transform var(--t-bg) ease-out;
+      transform-origin: center;
       will-change: transform;
     }
 
     .switch.on .thumb {
       transform: translateX(var(--travel));
+      animation: thumb-to-on var(--t-morph) var(--ease-morph);
+    }
+
+    .switch.off .thumb {
+      transform: translateX(0);
+      animation: thumb-to-off var(--t-morph) var(--ease-morph);
+    }
+
+    /* gota secundaria: invisible en reposo, vive durante la transición */
+    .droplet {
+      position: absolute;
+      top: calc((var(--track-h) - var(--droplet-d)) / 2);
+      left: calc(var(--pad) + (var(--thumb-d) - var(--droplet-d)) / 2);
+      width: var(--droplet-d);
+      height: var(--droplet-d);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #ffffff, #e8e8f0);
+      transform: translateX(0) scale(0);
+      will-change: transform;
+    }
+
+    .switch.on .droplet {
+      animation: droplet-to-on var(--t-morph) var(--ease-morph);
+    }
+
+    .switch.off .droplet {
+      animation: droplet-to-off var(--t-morph) var(--ease-morph);
+    }
+
+    /* keyframes thumb: estiramiento, viaje, overshoot, settle */
+    @keyframes thumb-to-on {
+      0%   { transform: translateX(0) scaleX(1) scaleY(1); }
+      18%  { transform: translateX(calc(var(--travel) * 0.2)) scaleX(1.4) scaleY(0.75); }
+      50%  { transform: translateX(calc(var(--travel) * 0.55)) scaleX(1.18) scaleY(0.88); }
+      72%  { transform: translateX(calc(var(--travel) + 4px)) scaleX(1.06) scaleY(0.96); }
+      86%  { transform: translateX(var(--travel)) scaleX(0.97) scaleY(1.03); }
+      100% { transform: translateX(var(--travel)) scaleX(1) scaleY(1); }
+    }
+
+    @keyframes thumb-to-off {
+      0%   { transform: translateX(var(--travel)) scaleX(1) scaleY(1); }
+      18%  { transform: translateX(calc(var(--travel) * 0.8)) scaleX(1.4) scaleY(0.75); }
+      50%  { transform: translateX(calc(var(--travel) * 0.45)) scaleX(1.18) scaleY(0.88); }
+      72%  { transform: translateX(-4px) scaleX(1.06) scaleY(0.96); }
+      86%  { transform: translateX(0) scaleX(0.97) scaleY(1.03); }
+      100% { transform: translateX(0) scaleX(1) scaleY(1); }
+    }
+
+    /* keyframes gota: nace, viaja un 15% más rápido, se fusiona al llegar */
+    @keyframes droplet-to-on {
+      0%   { transform: translateX(0) scale(0); }
+      12%  { transform: translateX(0) scale(0.55); }
+      28%  { transform: translateX(calc(var(--travel) * 0.35)) scale(1); }
+      55%  { transform: translateX(calc(var(--travel) * 0.85)) scale(1); }
+      68%  { transform: translateX(var(--travel)) scale(1.05); }
+      78%  { transform: translateX(var(--travel)) scale(0.45); }
+      100% { transform: translateX(var(--travel)) scale(0); }
+    }
+
+    @keyframes droplet-to-off {
+      0%   { transform: translateX(var(--travel)) scale(0); }
+      12%  { transform: translateX(var(--travel)) scale(0.55); }
+      28%  { transform: translateX(calc(var(--travel) * 0.65)) scale(1); }
+      55%  { transform: translateX(calc(var(--travel) * 0.15)) scale(1); }
+      68%  { transform: translateX(0) scale(1.05); }
+      78%  { transform: translateX(0) scale(0.45); }
+      100% { transform: translateX(0) scale(0); }
     }
   </style>
 </head>
 <body>
   <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Toggle">
-    <span class="thumb"></span>
+    <span class="goo-layer">
+      <span class="thumb"></span>
+      <span class="droplet"></span>
+    </span>
   </button>
+
+  <!-- definición del filtro goo, oculto -->
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <defs>
+      <filter id="goo">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+        <feColorMatrix in="blur" mode="matrix"
+          values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="goo" />
+        <feBlend in="SourceGraphic" in2="goo" />
+      </filter>
+    </defs>
+  </svg>
 
   <script>
     const sw = document.querySelector('.switch');
-    sw.addEventListener('click', () => {
-      const on = sw.classList.toggle('on');
+    let on = false;
+
+    function setState(next) {
+      on = next;
+      sw.classList.remove(on ? 'off' : 'on');
+      sw.classList.add(on ? 'on' : 'off');
       sw.setAttribute('aria-checked', String(on));
+    }
+
+    sw.addEventListener('click', () => {
+      setState(!on);
       sw.blur();
     });
   </script>
