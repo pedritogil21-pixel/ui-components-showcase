@@ -14,6 +14,10 @@ Cada componente vive en su propia carpeta y se ejecuta como una página HTML aut
 
 - **[Liquid Morph Toggle](./toggles/liquid-morph/)** — Toggle on/off donde el thumb se comporta como mercurio: se estira, se rompe en una gota secundaria que viaja por separado y se vuelve a fusionar al llegar. Efecto goo con SVG filter, ripple de feedback al settle y glow pulsante en estado activo.
 
+### Transitions
+
+- **[Diagonal Reveal Theme Switch](./transitions/diagonal-reveal/)** — Cambio de tema dark/light con un telón diagonal que barre la pantalla. Filo delantero con glow, estela de color, grain animado vía feTurbulence y revelación escalonada de los elementos del contenido al terminar el barrido.
+
 ## Cómo previsualizar
 
 Con GitHub Pages activado en este repositorio, cada componente queda disponible en:
