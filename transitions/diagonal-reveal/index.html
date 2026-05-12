@@ -12,7 +12,9 @@
 
   <style>
     :root {
+      --t-sweep: 1100ms;
       --t-fade: 200ms;
+      --ease-sweep: cubic-bezier(0.83, 0, 0.17, 1);
       --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
     }
 
@@ -104,7 +106,6 @@
       margin-top: 6px;
     }
 
-    /* botones */
     .btn {
       font-family: inherit;
       font-size: 14px;
@@ -137,7 +138,6 @@
       border: 1px solid var(--btn-ghost-border);
     }
 
-    /* footer social */
     .social {
       display: flex;
       gap: 18px;
@@ -167,7 +167,6 @@
       stroke-linejoin: round;
     }
 
-    /* botón de cambio de tema, fijo */
     .theme-toggle {
       position: fixed;
       top: calc(env(safe-area-inset-top, 0px) + 18px);
@@ -201,21 +200,65 @@
       transition: opacity 220ms var(--ease-soft), transform 220ms var(--ease-soft);
     }
 
-    [data-theme="dark"] .icon-sun {
+    [data-theme="dark"] .icon-sun { opacity: 1; transform: rotate(0); }
+    [data-theme="dark"] .icon-moon { opacity: 0; transform: rotate(-90deg); }
+    [data-theme="light"] .icon-sun { opacity: 0; transform: rotate(90deg); }
+    [data-theme="light"] .icon-moon { opacity: 1; transform: rotate(0); }
+
+    /* telón diagonal */
+    .curtain {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 200vmax;
+      height: 200vmax;
+      z-index: 50;
+      pointer-events: none;
+      background: var(--curtain-bg, #0a0a14);
       opacity: 1;
-      transform: rotate(0);
+      transform: translate(-50%, -50%) rotate(-45deg) translateX(150vmax);
+      will-change: transform, opacity;
     }
-    [data-theme="dark"] .icon-moon {
+
+    .curtain[data-target="dark"]  { --curtain-bg: #0a0a14; }
+    .curtain[data-target="light"] { --curtain-bg: #faf8f5; }
+
+    /* capa de grain dentro del telón */
+    .curtain__grain {
+      position: absolute;
+      inset: 0;
       opacity: 0;
-      transform: rotate(-90deg);
+      mix-blend-mode: overlay;
+      pointer-events: none;
     }
-    [data-theme="light"] .icon-sun {
-      opacity: 0;
-      transform: rotate(90deg);
+
+    .curtain__grain svg {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
-    [data-theme="light"] .icon-moon {
-      opacity: 1;
-      transform: rotate(0);
+
+    body.switching .curtain {
+      animation: curtain-sweep var(--t-sweep) var(--ease-sweep) forwards;
+    }
+
+    body.switching .curtain__grain {
+      animation: grain-life 900ms ease-in-out forwards;
+    }
+
+    @keyframes curtain-sweep {
+      0%   { transform: translate(-50%, -50%) rotate(-45deg) translateX(150vmax); opacity: 1; }
+      64%  { transform: translate(-50%, -50%) rotate(-45deg) translateX(0);       opacity: 1; }
+      82%  { transform: translate(-50%, -50%) rotate(-45deg) translateX(0);       opacity: 1; }
+      100% { transform: translate(-50%, -50%) rotate(-45deg) translateX(0);       opacity: 0; }
+    }
+
+    @keyframes grain-life {
+      0%   { opacity: 0; }
+      20%  { opacity: 0.1; }
+      60%  { opacity: 0.12; }
+      90%  { opacity: 0.04; }
+      100% { opacity: 0; }
     }
   </style>
 </head>
@@ -243,24 +286,75 @@
     </section>
 
     <footer class="social">
-      <a href="#" aria-label="circle">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
-      </a>
-      <a href="#" aria-label="square">
-        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
-      </a>
-      <a href="#" aria-label="triangle">
-        <svg viewBox="0 0 24 24"><path d="M12 5 L20 19 L4 19 Z" /></svg>
-      </a>
+      <a href="#" aria-label="circle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg></a>
+      <a href="#" aria-label="square"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg></a>
+      <a href="#" aria-label="triangle"><svg viewBox="0 0 24 24"><path d="M12 5 L20 19 L4 19 Z" /></svg></a>
     </footer>
   </main>
 
+  <!-- telón con grain -->
+  <div class="curtain" data-target="light">
+    <div class="curtain__grain">
+      <svg width="100%" height="100%" preserveAspectRatio="none">
+        <rect width="100%" height="100%" fill="white" filter="url(#grain-filter)" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- filtro de ruido reutilizable -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <filter id="grain-filter">
+        <feTurbulence id="grain-turb" type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="1" stitchTiles="stitch" />
+        <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1 0 0 0 0" />
+      </filter>
+    </defs>
+  </svg>
+
   <script>
     const html = document.documentElement;
+    const body = document.body;
     const toggle = document.querySelector(".theme-toggle");
+    const curtain = document.querySelector(".curtain");
+    const turb = document.getElementById("grain-turb");
+
+    let switching = false;
+    let grainTimer = null;
+
+    function vibrateGrain() {
+      grainTimer = setInterval(() => {
+        turb.setAttribute("seed", Math.floor(Math.random() * 1000));
+      }, 70);
+    }
+
+    function stopGrain() {
+      clearInterval(grainTimer);
+      grainTimer = null;
+    }
+
+    function doSwitch() {
+      if (switching) return;
+      switching = true;
+
+      const next = html.dataset.theme === "dark" ? "light" : "dark";
+      curtain.dataset.target = next;
+      body.classList.add("switching");
+      vibrateGrain();
+
+      // el cambio de tema sucede mientras el telón cubre la pantalla
+      setTimeout(() => {
+        html.dataset.theme = next;
+      }, 700);
+
+      setTimeout(() => {
+        stopGrain();
+        body.classList.remove("switching");
+        switching = false;
+      }, 1100);
+    }
 
     toggle.addEventListener("click", () => {
-      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
+      doSwitch();
       toggle.blur();
     });
   </script>
