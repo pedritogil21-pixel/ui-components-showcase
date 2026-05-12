@@ -24,6 +24,9 @@
 
       --t-bg: 500ms;
       --t-morph: 700ms;
+      --t-ripple: 350ms;
+      --d-ripple: 500ms;
+      --t-loop: 2500ms;
       --ease-morph: cubic-bezier(0.65, 0, 0.35, 1);
     }
 
@@ -64,9 +67,18 @@
 
     .switch.on {
       background: linear-gradient(135deg, var(--track-on-1), var(--track-on-2));
-      box-shadow:
-        inset 0 1px 4px rgba(0, 0, 0, 0.2),
-        0 0 30px var(--glow);
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* glow pulsante solo cuando está ON */
+    .switch.on::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      box-shadow: 0 0 30px var(--glow);
+      pointer-events: none;
+      animation: glow-pulse 3s ease-in-out infinite;
     }
 
     .switch:focus,
@@ -127,6 +139,32 @@
       animation: droplet-to-off var(--t-morph) var(--ease-morph);
     }
 
+    /* ripple de feedback al settle */
+    .ripple {
+      position: absolute;
+      top: var(--pad);
+      left: var(--pad);
+      width: var(--thumb-d);
+      height: var(--thumb-d);
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transform: scale(0);
+      transform-origin: center;
+      opacity: 0;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    .switch.on .ripple {
+      left: calc(var(--pad) + var(--travel));
+      animation: ripple var(--t-ripple) var(--d-ripple) ease-out;
+    }
+
+    .switch.off .ripple {
+      left: var(--pad);
+      animation: ripple var(--t-ripple) var(--d-ripple) ease-out;
+    }
+
     /* keyframes thumb: estiramiento, viaje, overshoot, settle */
     @keyframes thumb-to-on {
       0%   { transform: translateX(0) scaleX(1) scaleY(1); }
@@ -166,6 +204,28 @@
       78%  { transform: translateX(0) scale(0.45); }
       100% { transform: translateX(0) scale(0); }
     }
+
+    @keyframes ripple {
+      0%   { transform: scale(0); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { opacity: 0.3; }
+      50%      { opacity: 0.5; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .switch.on .thumb,
+      .switch.off .thumb,
+      .switch.on .droplet,
+      .switch.off .droplet,
+      .switch.on .ripple,
+      .switch.off .ripple {
+        animation-duration: 250ms;
+      }
+      .switch.on::after { animation: none; opacity: 0.4; }
+    }
   </style>
 </head>
 <body>
@@ -174,6 +234,7 @@
       <span class="thumb"></span>
       <span class="droplet"></span>
     </span>
+    <span class="ripple"></span>
   </button>
 
   <!-- definición del filtro goo, oculto -->
@@ -190,6 +251,7 @@
 
   <script>
     const sw = document.querySelector('.switch');
+    const LOOP_MS = 2500;
     let on = false;
 
     function setState(next) {
@@ -203,6 +265,9 @@
       setState(!on);
       sw.blur();
     });
+
+    // demo loop: alterna sin cursor visible ni focus
+    setInterval(() => setState(!on), LOOP_MS);
   </script>
 </body>
 </html>
