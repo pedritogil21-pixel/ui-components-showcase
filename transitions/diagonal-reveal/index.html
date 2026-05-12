@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a14" />
+  <title>Diagonal Reveal Theme Switch</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --t-fade: 200ms;
+      --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0a0a14;
+      --text: #e8e8f0;
+      --text-soft: rgba(232, 232, 240, 0.55);
+      --btn-primary-bg: #8b5cf6;
+      --btn-primary-text: #ffffff;
+      --btn-ghost-border: rgba(255, 255, 255, 0.15);
+      --accent: #a78bfa;
+    }
+
+    :root[data-theme="light"] {
+      --bg: #faf8f5;
+      --text: #14141c;
+      --text-soft: rgba(20, 20, 28, 0.55);
+      --btn-primary-bg: #14141c;
+      --btn-primary-text: #faf8f5;
+      --btn-ghost-border: rgba(20, 20, 28, 0.15);
+      --accent: #f5a373;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100dvh;
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* layout vertical centrado para 9:16 */
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100dvh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 36px 28px 32px;
+      gap: 32px;
+    }
+
+    .brand {
+      font-family: "Fraunces", "Times New Roman", serif;
+      font-weight: 500;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+    }
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 22px;
+    }
+
+    .hero__title {
+      font-family: "Fraunces", "Times New Roman", serif;
+      font-weight: 500;
+      font-size: 44px;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+    }
+
+    .hero__lead {
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--text-soft);
+      max-width: 36ch;
+    }
+
+    .hero__actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    /* botones */
+    .btn {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 22px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      transition: transform 200ms var(--ease-soft);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:focus,
+    .btn:focus-visible {
+      outline: none;
+    }
+
+    .btn:hover {
+      transform: scale(1.02);
+    }
+
+    .btn--primary {
+      background: var(--btn-primary-bg);
+      color: var(--btn-primary-text);
+    }
+
+    .btn--ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--btn-ghost-border);
+    }
+
+    /* footer social */
+    .social {
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      padding-top: 8px;
+    }
+
+    .social a {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      color: var(--text-soft);
+      transition: color 200ms ease;
+    }
+
+    .social a:hover {
+      color: var(--text);
+    }
+
+    .social svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linejoin: round;
+    }
+
+    /* botón de cambio de tema, fijo */
+    .theme-toggle {
+      position: fixed;
+      top: calc(env(safe-area-inset-top, 0px) + 18px);
+      left: 18px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--btn-ghost-border);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      z-index: 100;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .theme-toggle:focus,
+    .theme-toggle:focus-visible {
+      outline: none;
+    }
+
+    .theme-toggle svg {
+      grid-area: 1 / 1;
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      transition: opacity 220ms var(--ease-soft), transform 220ms var(--ease-soft);
+    }
+
+    [data-theme="dark"] .icon-sun {
+      opacity: 1;
+      transform: rotate(0);
+    }
+    [data-theme="dark"] .icon-moon {
+      opacity: 0;
+      transform: rotate(-90deg);
+    }
+    [data-theme="light"] .icon-sun {
+      opacity: 0;
+      transform: rotate(90deg);
+    }
+    [data-theme="light"] .icon-moon {
+      opacity: 1;
+      transform: rotate(0);
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" type="button" aria-label="Cambiar tema">
+    <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+    <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  </button>
+
+  <main class="page">
+    <header class="brand">AURA</header>
+
+    <section class="hero">
+      <h1 class="hero__title">Design beyond pixels.</h1>
+      <p class="hero__lead">Interfaces crafted with intention. Each pixel measured, each motion meaningful.</p>
+      <div class="hero__actions">
+        <button class="btn btn--primary" type="button">Get started</button>
+        <button class="btn btn--ghost" type="button">Learn more</button>
+      </div>
+    </section>
+
+    <footer class="social">
+      <a href="#" aria-label="circle">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
+      </a>
+      <a href="#" aria-label="square">
+        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+      </a>
+      <a href="#" aria-label="triangle">
+        <svg viewBox="0 0 24 24"><path d="M12 5 L20 19 L4 19 Z" /></svg>
+      </a>
+    </footer>
+  </main>
+
+  <script>
+    const html = document.documentElement;
+    const toggle = document.querySelector(".theme-toggle");
+
+    toggle.addEventListener("click", () => {
+      html.dataset.theme = html.dataset.theme === "dark" ? "light" : "dark";
+      toggle.blur();
+    });
+  </script>
+</body>
+</html>
