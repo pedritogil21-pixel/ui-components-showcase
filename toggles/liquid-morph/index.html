@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a14" />
+  <title>Liquid Morph Toggle</title>
+  <style>
+    :root {
+      --bg: #0a0a14;
+      --track-off: #1a1a28;
+      --track-on-1: #8b5cf6;
+      --track-on-2: #ec4899;
+      --thumb: #ffffff;
+      --border: rgba(255, 255, 255, 0.06);
+      --glow: rgba(139, 92, 246, 0.4);
+
+      --track-w: 140px;
+      --track-h: 64px;
+      --thumb-d: 52px;
+      --pad: 6px;
+      --travel: calc(var(--track-w) - var(--thumb-d) - var(--pad) * 2);
+      --t-bg: 500ms;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    /* track */
+    .switch {
+      position: relative;
+      width: var(--track-w);
+      height: var(--track-h);
+      border-radius: calc(var(--track-h) / 2);
+      background: var(--track-off);
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      transition: background var(--t-bg) ease-out, box-shadow var(--t-bg) ease-out;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .switch.on {
+      background: linear-gradient(135deg, var(--track-on-1), var(--track-on-2));
+      box-shadow:
+        inset 0 1px 4px rgba(0, 0, 0, 0.2),
+        0 0 30px var(--glow);
+    }
+
+    .switch:focus,
+    .switch:focus-visible {
+      outline: none;
+    }
+
+    /* thumb */
+    .thumb {
+      position: absolute;
+      top: var(--pad);
+      left: var(--pad);
+      width: var(--thumb-d);
+      height: var(--thumb-d);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #ffffff, #e8e8f0);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      transform: translateX(0);
+      transition: transform var(--t-bg) ease-out;
+      will-change: transform;
+    }
+
+    .switch.on .thumb {
+      transform: translateX(var(--travel));
+    }
+  </style>
+</head>
+<body>
+  <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Toggle">
+    <span class="thumb"></span>
+  </button>
+
+  <script>
+    const sw = document.querySelector('.switch');
+    sw.addEventListener('click', () => {
+      const on = sw.classList.toggle('on');
+      sw.setAttribute('aria-checked', String(on));
+      sw.blur();
+    });
+  </script>
+</body>
+</html>
