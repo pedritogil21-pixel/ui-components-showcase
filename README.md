@@ -10,6 +10,10 @@ Cada componente vive en su propia carpeta y se ejecuta como una página HTML aut
 
 - **[Liquid Orb Constellation Loader](./loaders/liquid-orb-constellation/)** — Orbe central con glassmorphism, tres partículas orbitando en planos 3D distintos y líneas de conexión SVG que se actualizan en tiempo real. Ciclo cromático de 8s entre púrpura, magenta y cyan.
 
+### Toggles
+
+- **[Liquid Morph Toggle](./toggles/liquid-morph/)** — Toggle on/off donde el thumb se comporta como mercurio: se estira, se rompe en una gota secundaria que viaja por separado y se vuelve a fusionar al llegar. Efecto goo con SVG filter, ripple de feedback al settle y glow pulsante en estado activo.
+
 ## Cómo previsualizar
 
 Con GitHub Pages activado en este repositorio, cada componente queda disponible en:
